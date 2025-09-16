@@ -34,14 +34,16 @@
             constructor(index, name = '', effectDuration = 180, extendDuration = 90) {
                 this.index = index;
                 this.name = name;
-                this.effectDuration = effectDuration; // 効果時間
-                this.extendDuration = extendDuration; // 延長時間
+                this.effectDuration = effectDuration;
+                this.extendDuration = extendDuration;
                 this.timer = 0;
             }
+
             reset() {
                 this.timer = 0;
                 this.updateUI();
             }
+
             addTime() {
                 if (this.timer === 0) {
                     this.timer = this.effectDuration;
@@ -50,13 +52,61 @@
                 }
                 this.updateUI();
             }
+
             updateUI() {
                 document.getElementById(`time-${this.index}`).textContent = this.timer;
             }
+
             render(container) {
                 const div = document.createElement("div");
                 div.className = "timer";
                 div.id = `timer-${this.index}`;
+
+                const createNotesHtml = (notes) => {
+                    if (!(notes && this.name)) return '';
+                    const maxNotes = 4;
+                    const emptyCount = maxNotes - notes.length;
+                    let html = `<span class="note-icons" style="display:flex;justify-content:flex-start;align-items:center;width:100px;min-width:80px;vertical-align:middle;margin-left:10px;">`;
+                    for (let i = 0; i < emptyCount; i++) {
+                        html += `<span style="display:inline-block;width:22px;height:22px;margin-left:2px;"></span>`;
+                    }
+                    for (let i = 0; i < notes.length; i++) {
+                        const c = notes[i];
+                        const color = getHornColorCode(c);
+                        let borderColor = '#222';
+                        if (c === '白' || c === '黄' || c === '空') borderColor = '#888';
+                        html += `<span title="${c}" style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${color};border:2px solid ${borderColor};margin-left:2px;vertical-align:middle;"></span>`;
+                    }
+                    html += `</span>`;
+                    return html;
+                };
+
+                const createTimerRowHtml = (notesHtml) => {
+                    return `
+                            <div style="display:flex;align-items:center;">
+                                <label>[${this.index}] <input type="text" id="name-${this.index}" style="width:200px;" placeholder="名称" value="${this.name}"></label>
+                                <label style="margin-left:10px;">効果時間: <input type="number" id="effectDuration-${this.index}" value="${this.effectDuration}" min="1" style="width:80px;"></label>
+                                <label style="margin-left:10px;">延長時間: <input type="number" id="extendDuration-${this.index}" value="${this.extendDuration}" min="1" style="width:80px;"></label>
+                                <span id="time-${this.index}" style="display:inline-block;margin-left:5px;width:40px;text-align:right;">0</span> 秒
+                                <button id="reset-${this.index}">リセット</button>
+                                ${notesHtml}
+                            </div>
+                        `;
+                };
+
+                const addEventListeners = () => {
+                    document.getElementById(`name-${this.index}`).addEventListener("input", (e) => {
+                        this.name = e.target.value;
+                    });
+                    document.getElementById(`effectDuration-${this.index}`).addEventListener("change", (e) => {
+                        this.effectDuration = parseInt(e.target.value) || 1;
+                    });
+                    document.getElementById(`extendDuration-${this.index}`).addEventListener("change", (e) => {
+                        this.extendDuration = parseInt(e.target.value) || 1;
+                    });
+                    document.getElementById(`reset-${this.index}`).addEventListener("click", () => this.reset());
+                };
+
                 // notes取得（テンプレートから）
                 let notes = '';
                 const select = document.getElementById('templateSelect');
@@ -65,49 +115,10 @@
                     const template = huntingHornTimerTemplates[hornName][this.index - 1];
                     if (template && template.notes) notes = template.notes;
                 }
-                // 旋律生成
-                let notesHtml = '';
-                if (notes && this.name) {
-                    const maxNotes = 4; // 最大4音色分スペース
-                    const emptyCount = maxNotes - notes.length;
-                    notesHtml = `<span class="note-icons" style="display:flex;justify-content:flex-start;align-items:center;width:100px;min-width:80px;vertical-align:middle;margin-left:10px;">`;
-                    // 空白分のスペース
-                    for (let i = 0; i < emptyCount; i++) {
-                        notesHtml += `<span style="display:inline-block;width:22px;height:22px;margin-left:2px;"></span>`;
-                    }
-                    // 音色アイコン
-                    for (let i = 0; i < notes.length; i++) {
-                        const c = notes[i];
-                        const color = getHornColorCode(c);
-                        let borderColor = '#222';
-                        if (c === '白' || c === '黄' || c === '空') borderColor = '#888';
-                        notesHtml += `<span title="${c}" style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${color};border:2px solid ${borderColor};margin-left:2px;vertical-align:middle;"></span>`;
-                    }
-                    notesHtml += `</span>`;
-                }
-                // テキスト生成
-                div.innerHTML = `
-                    <div style="display:flex;align-items:center;">
-                        <label>[${this.index}] <input type="text" id="name-${this.index}" style="width:200px;" placeholder="名称" value="${this.name}"></label>
-                        <label style="margin-left:10px;">効果時間: <input type="number" id="effectDuration-${this.index}" value="${this.effectDuration}" min="1" style="width:80px;"></label>
-                        <label style="margin-left:10px;">延長時間: <input type="number" id="extendDuration-${this.index}" value="${this.extendDuration}" min="1" style="width:80px;"></label>
-                        <span id="time-${this.index}" style="display:inline-block;margin-left:5px;width:40px;text-align:right;">0</span> 秒
-                        <button id="reset-${this.index}">リセット</button>
-                        ${notesHtml}
-                    </div>
-                    `;
+                const notesHtml = createNotesHtml(notes);
+                div.innerHTML = createTimerRowHtml(notesHtml);
                 container.appendChild(div);
-                // イベント
-                document.getElementById(`name-${this.index}`).addEventListener("input", (e) => {
-                    this.name = e.target.value;
-                });
-                document.getElementById(`effectDuration-${this.index}`).addEventListener("change", (e) => {
-                    this.effectDuration = parseInt(e.target.value) || 1;
-                });
-                document.getElementById(`extendDuration-${this.index}`).addEventListener("change", (e) => {
-                    this.extendDuration = parseInt(e.target.value) || 1;
-                });
-                document.getElementById(`reset-${this.index}`).addEventListener("click", () => this.reset());
+                addEventListeners();
             }
         }
 
@@ -184,6 +195,7 @@
                         melodies[i].extendDuration = parseInt(template[i].extendDuration) || 1;
                     }
                 } else {
+                    // テンプレートにない場合はデフォルト値にリセット
                     melodies[i].name = '';
                     melodies[i].effectDuration = 180;
                     melodies[i].extendDuration = 90;
@@ -197,7 +209,7 @@
 
         // 初期化
         window.addEventListener('DOMContentLoaded', () => {
-            // 1～9の旋律を生成
+            // 1～9の旋律タイマーを生成
             for (let i = 1; i <= 9; i++) {
                 melodies.push(new Melody(i));
             }

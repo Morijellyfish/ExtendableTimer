@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>旋律タイマー</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 20px;
+        }
+
+        button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>旋律タイマー</h1>
+    <div style="margin-bottom: 20px; color: #888; font-size: 14px;">
+        ※各タイマーごとに「初回値」「延長値」を変更できます。
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label>狩猟笛テンプレート:
+            <select id="templateSelect">
+                <option value="">--選択--</option>
+            </select>
+        </label>
+        <button id="applyTemplateBtn">適用</button>
+    </div>
+    <div id="timers"></div>
+
+    <script src="template.js"></script>
+    <script>
+        // 旋律クラス
+        class Melody {
+            constructor(index, name = '', effectDuration = 180, extendDuration = 90) {
+                this.index = index;
+                this.name = name;
+                this.effectDuration = effectDuration; // 効果時間
+                this.extendDuration = extendDuration; // 延長時間
+                this.timer = 0;
+            }
+            reset() {
+                this.timer = 0;
+                this.updateUI();
+            }
+            addTime() {
+                if (this.timer === 0) {
+                    this.timer = this.effectDuration;
+                } else {
+                    this.timer = Math.min(this.effectDuration, this.timer + this.extendDuration);
+                }
+                this.updateUI();
+            }
+            updateUI() {
+                document.getElementById(`time-${this.index}`).textContent = this.timer;
+            }
+            render(container) {
+                const div = document.createElement("div");
+                div.className = "timer";
+                div.id = `timer-${this.index}`;
+                div.innerHTML = `
+                <label>[${this.index}] 名称: <input type="text" id="name-${this.index}" style="width:100px;" placeholder="名称" value="${this.name}"></label>
+                <label style="margin-left:10px;">効果時間: <input type="number" id="effectDuration-${this.index}" value="${this.effectDuration}" min="1" style="width:80px;"></label>
+                <label style="margin-left:10px;">延長時間: <input type="number" id="extendDuration-${this.index}" value="${this.extendDuration}" min="1" style="width:80px;"></label>
+                <span id="time-${this.index}">0</span>秒
+                <button id="reset-${this.index}">リセット</button>
+            `;
+                container.appendChild(div);
+                // イベント
+                document.getElementById(`name-${this.index}`).addEventListener("input", (e) => {
+                    this.name = e.target.value;
+                });
+                document.getElementById(`effectDuration-${this.index}`).addEventListener("change", (e) => {
+                    this.effectDuration = parseInt(e.target.value) || 1;
+                });
+                document.getElementById(`extendDuration-${this.index}`).addEventListener("change", (e) => {
+                    this.extendDuration = parseInt(e.target.value) || 1;
+                });
+                document.getElementById(`reset-${this.index}`).addEventListener("click", () => this.reset());
+            }
+        }
+
+        // Melody配列で管理
+        let melodies = [];
+        const timersDiv = document.getElementById("timers");
+
+        // テンプレート選択UIの初期化
+        function initTemplateSelect() {
+            if (typeof huntingHornTimerTemplates !== 'object') return;
+            const select = document.getElementById('templateSelect');
+            for (const hornName in huntingHornTimerTemplates) {
+                const opt = document.createElement('option');
+                opt.value = hornName;
+                opt.textContent = hornName;
+                select.appendChild(opt);
+            }
+        }
+
+        // テンプレート適用処理
+        function applyTemplate() {
+            const select = document.getElementById('templateSelect');
+            const hornName = select.value;
+            if (!hornName || !huntingHornTimerTemplates[hornName]) return;
+            const template = huntingHornTimerTemplates[hornName];
+            for (let i = 0; i < 9; i++) {
+                if (template[i]) {
+                    melodies[i].name = template[i].name;
+                    melodies[i].effectDuration = template[i].effectDuration;
+                    melodies[i].extendDuration = template[i].extendDuration;
+                } else {
+                    melodies[i].name = '';
+                    melodies[i].effectDuration = 180;
+                    melodies[i].extendDuration = 90;
+                }
+                // 入力欄の値も更新
+                const nameInput = document.getElementById(`name-${i + 1}`);
+                if (nameInput) nameInput.value = melodies[i].name;
+                const effectInput = document.getElementById(`effectDuration-${i + 1}`);
+                if (effectInput) effectInput.value = melodies[i].effectDuration;
+                const extendInput = document.getElementById(`extendDuration-${i + 1}`);
+                if (extendInput) extendInput.value = melodies[i].extendDuration;
+            }
+        }
+
+        // 初期化
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1～9のMelodyを生成
+            for (let i = 1; i <= 9; i++) {
+                melodies.push(new Melody(i));
+            }
+            // UI描画
+            melodies.forEach(melody => melody.render(timersDiv));
+            initTemplateSelect();
+            document.getElementById('applyTemplateBtn').addEventListener('click', applyTemplate);
+        });
+
+        // キーボード入力
+        document.addEventListener("keydown", (e) => {
+            if (!/^[1-9]$/.test(e.key)) return;
+            const key = Number(e.key);
+            melodies[key - 1].addTime();
+        });
+
+        // 1秒ごとに減らす
+        setInterval(() => {
+            melodies.forEach(melody => {
+                if (melody.timer > 0) {
+                    melody.timer--;
+                    melody.updateUI();
+                }
+            });
+        }, 1000);
+    </script>
+</body>
+
+</html>

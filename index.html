@@ -19,6 +19,9 @@
                 <option value="">--選択--</option>
             </select>
         </label>
+        <label style="margin-left:16px;">
+            <input type="checkbox" id="fuefukiCheckbox"> 笛吹き名人
+        </label>
         <button id="applyTemplateBtn">適用</button>
     </div>
     <div id="timers"></div>
@@ -54,7 +57,7 @@
                 div.className = "timer";
                 div.id = `timer-${this.index}`;
                 div.innerHTML = `
-                <label>[${this.index}] <input type="text" id="name-${this.index}" style="width:150px;" placeholder="名称" value="${this.name}"></label>
+                <label>[${this.index}] <input type="text" id="name-${this.index}" style="width:200px;" placeholder="名称" value="${this.name}"></label>
                 <label style="margin-left:10px;">効果時間: <input type="number" id="effectDuration-${this.index}" value="${this.effectDuration}" min="1" style="width:80px;"></label>
                 <label style="margin-left:10px;">延長時間: <input type="number" id="extendDuration-${this.index}" value="${this.extendDuration}" min="1" style="width:80px;"></label>
                 <span id="time-${this.index}" style="display:inline-block;margin-left:18px;width:3.5em;text-align:right;">0</span>秒
@@ -95,13 +98,19 @@
         function applyTemplate() {
             const select = document.getElementById('templateSelect');
             const hornName = select.value;
+            const withSkill = document.getElementById('fuefukiCheckbox').checked;
             if (!hornName || !huntingHornTimerTemplates[hornName]) return;
             const template = huntingHornTimerTemplates[hornName];
             for (let i = 0; i < 9; i++) {
                 if (template[i]) {
                     melodies[i].name = template[i].name;
-                    melodies[i].effectDuration = template[i].effectDuration;
-                    melodies[i].extendDuration = template[i].extendDuration;
+                    if (withSkill && template[i].effectDurationWithSkill !== undefined) {
+                        melodies[i].effectDuration = template[i].effectDurationWithSkill;
+                        melodies[i].extendDuration = template[i].extendDurationWithSkill;
+                    } else {
+                        melodies[i].effectDuration = template[i].effectDuration;
+                        melodies[i].extendDuration = template[i].extendDuration;
+                    }
                 } else {
                     melodies[i].name = '';
                     melodies[i].effectDuration = 180;

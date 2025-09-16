@@ -24,6 +24,7 @@
         </label>
         <button id="applyTemplateBtn">適用</button>
     </div>
+    <div id="hornColors" style="margin-bottom:16px;"></div>
     <div id="timers"></div>
 
     <script src="template.js"></script>
@@ -94,10 +95,49 @@
             }
         }
 
+        // 色名→カラーコード変換
+        function getHornColorCode(c) {
+            switch (c) {
+                case '白': return '#ffffff';
+                case '赤': return '#ff0000';
+                case '青': return '#0000ff';
+                case '黄': return '#ffff00';
+                case '緑': return '#00ff00';
+                case '空': return '#75C4FF';
+                case '紫': return '#ff00ff';
+                case '橙': return '#FF8800';
+                default: return '#ccc';
+            }
+        }
+
+        // 音色表示
+        function showHornColors(hornName) {
+            const colorDiv = document.getElementById('hornColors');
+            colorDiv.innerHTML = '';
+            if (!hornName) return;
+            const colors = hornName.split("").slice(0, 3);
+            colors.forEach(c => {
+                const span = document.createElement('span');
+                span.style.display = 'inline-block';
+                span.style.width = '28px';
+                span.style.height = '28px';
+                span.style.borderRadius = '50%';
+                span.style.marginRight = '8px';
+                // 色に応じてアウトライン色を変える
+                let borderColor = '#222';
+                if (c === '白' || c === '黄' || c === '空') borderColor = '#888';
+                span.style.border = '1.5px solid ' + borderColor;
+                span.style.background = getHornColorCode(c);
+                span.title = c;
+                colorDiv.appendChild(span);
+            });
+        }
+
         // テンプレート適用処理
         function applyTemplate() {
             const select = document.getElementById('templateSelect');
             const hornName = select.value;
+            showHornColors(hornName);
             const withSkill = document.getElementById('fuefukiCheckbox').checked;
             if (!hornName || !huntingHornTimerTemplates[hornName]) return;
             const template = huntingHornTimerTemplates[hornName];
@@ -105,11 +145,11 @@
                 if (template[i]) {
                     melodies[i].name = template[i].name;
                     if (withSkill && template[i].effectDurationWithSkill !== undefined) {
-                        melodies[i].effectDuration = template[i].effectDurationWithSkill;
-                        melodies[i].extendDuration = template[i].extendDurationWithSkill;
+                        melodies[i].effectDuration = parseInt(template[i].effectDurationWithSkill) || 1;
+                        melodies[i].extendDuration = parseInt(template[i].extendDurationWithSkill) || 1;
                     } else {
-                        melodies[i].effectDuration = template[i].effectDuration;
-                        melodies[i].extendDuration = template[i].extendDuration;
+                        melodies[i].effectDuration = parseInt(template[i].effectDuration) || 1;
+                        melodies[i].extendDuration = parseInt(template[i].extendDuration) || 1;
                     }
                 } else {
                     melodies[i].name = '';
@@ -124,11 +164,16 @@
                 const extendInput = document.getElementById(`extendDuration-${i + 1}`);
                 if (extendInput) extendInput.value = melodies[i].extendDuration;
             }
+            // 適用時に全タイマーをリセット
+            melodies.forEach(melody => {
+                melody.timer = 0;
+                melody.updateUI();
+            });
         }
 
         // 初期化
         window.addEventListener('DOMContentLoaded', () => {
-            // 1～9のMelodyを生成
+            // 1～9の旋律を生成
             for (let i = 1; i <= 9; i++) {
                 melodies.push(new Melody(i));
             }

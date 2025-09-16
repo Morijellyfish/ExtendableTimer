@@ -221,6 +221,13 @@
 
         // キーボード入力
         document.addEventListener("keydown", (e) => {
+            // 入力系要素がフォーカスされている場合は無視
+            const active = document.activeElement;
+            if (active && (
+                active.tagName === 'INPUT' ||
+                active.tagName === 'TEXTAREA' ||
+                active.isContentEditable
+            )) return;
             if (!/^[1-9]$/.test(e.key)) return;
             const key = Number(e.key);
             melodies[key - 1].addTime();

@@ -1,3 +1,48 @@
+/* 残り15秒で点滅 */
+
+.blinking {
+    animation: blink-timer 1.2s ease-in-out infinite;
+}
+
+
+@keyframes blink-timer {
+
+    0%,
+    100% {
+        background: #fff;
+        color: #222;
+    }
+
+    50% {
+        background: rgba(255, 251, 230, 0.55);
+        color: #bfa600;
+        box-shadow: 0 0 16px 4px rgba(255, 224, 102, 0.25);
+    }
+}
+
+
+@media (prefers-color-scheme: dark) {
+    .blinking {
+        animation: blink-timer-dark 1.2s ease-in-out infinite;
+    }
+}
+
+@keyframes blink-timer-dark {
+
+    0%,
+    100% {
+        background: #23272b;
+        color: #e6e6e6;
+    }
+
+    50% {
+        background: rgba(191, 166, 0, 0.33);
+        color: #e6e6e6;
+        box-shadow: 0 0 16px 4px rgba(255, 224, 102, 0.13);
+    }
+}
+
+/* 共通スタイル */
 body {
     font-family: sans-serif;
     padding: 20px;

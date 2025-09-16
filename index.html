@@ -55,6 +55,15 @@
 
             updateUI() {
                 document.getElementById(`time-${this.index}`).textContent = this.timer;
+                // 残り15秒以下で点滅クラスを付与
+                const timerDiv = document.getElementById(`timer-${this.index}`);
+                if (timerDiv) {
+                    if (this.timer > 0 && this.timer <= 15) {
+                        timerDiv.classList.add('blinking');
+                    } else {
+                        timerDiv.classList.remove('blinking');
+                    }
+                }
             }
 
             render(container) {

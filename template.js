@@ -155,7 +155,7 @@ const huntingHornTimerTemplates = {
         { name: "属性攻撃力強化", effectDuration: 129, effectDurationWithSkill: 150, extendDuration: 90, extendDurationWithSkill: 120 },
         { name: "高周波", effectDuration: 0, effectDurationWithSkill: 0, extendDuration: 0, extendDurationWithSkill: 0 }
     ],
-    "赤橙赤": [
+    "紫橙赤": [
         { name: "自己強化", effectDuration: 180, effectDurationWithSkill: 240, extendDuration: 90, extendDurationWithSkill: 120 },
         { name: "全旋律効果延長", effectDuration: 0, effectDurationWithSkill: 0, extendDuration: 30, extendDurationWithSkill: 40 },
         { name: "のけぞり無効", effectDuration: 45, effectDurationWithSkill: 60, extendDuration: 45, extendDurationWithSkill: 60 },
